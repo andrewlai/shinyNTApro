@@ -1,0 +1,290 @@
+---
+title: "shinyNTApro Analysis Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+params:
+  application_version: "Unknown"
+  active_filters: !r NULL
+  assignment_map: !r NULL
+  comparison_plot1: !r NULL
+  comparison_plot2: !r NULL
+  main_data: !r NULL
+  metadata: !r NULL
+  qc_status: !r NULL
+  group_assignments_file: "None"
+  stat_test_results_object: !r NULL
+  stat_plot_object: !r NULL
+  precision_results: !r NULL
+  selected_id_col: !r NULL
+  selected_stat_metric: !r NULL
+  report_run_time: !r Sys.time()
+  input_file_name: "N/A"
+  distribution_data_for_report: !r NULL
+  dist_plot_object_for_report: !r NULL
+  distribution_plot_height: 6
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  results = "asis",
+  comment = NA,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 9,
+  fig.height = 6,
+  dpi = 150
+)
+
+is_nonempty_df <- function(x) {
+  is.data.frame(x) && nrow(x) > 0
+}
+
+print_table <- function(x, caption = NULL, digits = 4) {
+  if (!is_nonempty_df(x)) return(invisible(NULL))
+  cat("\n\n<div class=\"report-table\">\n", as.character(knitr::kable(x, caption = caption, digits = digits, format = "html", escape = TRUE, row.names = FALSE)), "\n</div>\n\n", sep = "")
+}
+
+safe_value <- function(x, fallback = "N/A") {
+  if (is.null(x) || length(x) == 0 || all(is.na(x))) fallback else x
+}
+```
+
+<style>
+.report-table { overflow-x: auto; margin: 16px 0 24px; }
+.report-table table { border-collapse: collapse; width: 100%; }
+.report-table th, .report-table td { padding: 8px 12px; min-width: 100px; max-width: 280px; overflow-wrap: anywhere; vertical-align: top; border-bottom: 1px solid #e1e6eb; }
+.report-table th { background: #edf3f6; }
+.report-table tbody tr:nth-child(even) { background: #f8fafb; }
+</style>
+
+# Analysis information
+
+```{r analysis-information}
+run_info <- data.frame(
+  Item = c("Report generated", "Input file(s)", "Selected identifier", "Group assignment file", "Selected statistical metric"),
+  Value = c(
+    format(params$report_run_time, "%Y-%m-%d %H:%M:%S %Z"),
+    safe_value(params$input_file_name),
+    safe_value(params$selected_id_col),
+    safe_value(params$group_assignments_file, "None"),
+    safe_value(params$selected_stat_metric)
+  ),
+  stringsAsFactors = FALSE
+)
+print_table(run_info)
+```
+
+# Analysis scope and group assignments
+
+```{r analysis-scope}
+cat("Application version: ", params$application_version, "\n\n", sep = "")
+if (length(params$active_filters)) {
+  filters <- data.frame(Filter = names(params$active_filters), Selection = vapply(params$active_filters,
+    function(x) if (length(x)) paste(x, collapse = ", ") else "All", character(1)))
+  print_table(filters)
+}
+if (is_nonempty_df(params$assignment_map)) {
+  mapping <- params$assignment_map
+  print_table(data.frame(Imported = nrow(mapping), Included_by_filters = sum(mapping$included_by_filters),
+    Excluded_by_filters = sum(!mapping$included_by_filters), Assigned = sum(!is.na(mapping$group)),
+    Included_in_statistics = sum(mapping$included_in_statistics)))
+  cat("\nComplete sample-to-group mapping. Statistical inclusion refers to the selected parameter and design; review the statistical results for diagnostic restrictions.\n\n")
+  print_table(mapping)
+}
+```
+
+# Comparison plots
+
+```{r comparison-plots}
+if (!is.null(params$comparison_plot1)) print(params$comparison_plot1)
+if (!is.null(params$comparison_plot2)) print(params$comparison_plot2)
+```
+
+# File metadata
+
+```{r metadata}
+if (is_nonempty_df(params$metadata)) {
+  print_table(params$metadata)
+} else {
+  cat("No file metadata were available.\n")
+}
+```
+
+# Parsed summary data
+
+```{r data-summary}
+if (is_nonempty_df(params$main_data)) {
+  numeric_columns <- names(params$main_data)[vapply(params$main_data, is.numeric, logical(1))]
+  data_summary <- data.frame(
+    Records = nrow(params$main_data),
+    Variables = ncol(params$main_data),
+    Numeric_variables = length(numeric_columns),
+    stringsAsFactors = FALSE
+  )
+  print_table(data_summary)
+
+  preview_columns <- intersect(
+    c("source_file", "sample_name", "well_id", "group", numeric_columns),
+    names(params$main_data)
+  )
+  preview_columns <- unique(preview_columns)[seq_len(min(length(unique(preview_columns)), 12))]
+  if (length(preview_columns)) {
+    cat("\n## Data preview\n\n")
+    print_table(utils::head(params$main_data[, preview_columns, drop = FALSE], 20))
+  }
+} else {
+  cat("No parsed summary data were available.\n")
+}
+```
+
+# Quality-control result
+
+```{r qc-result}
+qc <- params$qc_status
+if (is.null(qc)) {
+  cat("No QC summary file was analysed for this report.\n")
+} else if (!is.null(qc$message) && identical(qc$status, "ERROR")) {
+  cat("**QC error:** ", qc$message, "\n", sep = "")
+} else {
+  qc_table <- data.frame(
+    Item = c("Overall status", "Source file", "Target size (nm)", "Tolerance (%)", "Lower bound (nm)", "Upper bound (nm)"),
+    Value = c(
+      safe_value(qc$status),
+      safe_value(qc$source_file),
+      safe_value(qc$target),
+      safe_value(qc$tolerance),
+      safe_value(qc$lower_bound),
+      safe_value(qc$upper_bound)
+    ),
+    stringsAsFactors = FALSE
+  )
+  print_table(qc_table)
+
+  if (is_nonempty_df(qc$results)) {
+    cat("\n## QC wells\n\n")
+    print_table(qc$results)
+  }
+}
+```
+
+# Statistical comparison
+
+```{r statistical-results}
+stats_result <- params$stat_test_results_object
+if (is.null(stats_result)) {
+  cat("No grouped statistical analysis was available.\n")
+} else if (!is.null(stats_result$error)) {
+  cat("**Statistical analysis error:** ", stats_result$error, "\n", sep = "")
+  print_table(stats_result$assumptions$normality_by_group, caption = "Within-group normality diagnostics")
+} else {
+  stats_overview <- data.frame(
+    Item = c("Study design", "Executed test", safe_value(stats_result$selection_heading, "Selection rationale"), "Smallest available within-group Shapiro p", "Median-centred Levene variance p"),
+    Value = c(
+      safe_value(stats_result$study_design),
+      safe_value(stats_result$test_label, stats_result$test_name),
+      safe_value(stats_result$selection_reason),
+      safe_value(stats_result$assumptions$shapiro_p),
+      safe_value(stats_result$assumptions$levene_p)
+    ),
+    stringsAsFactors = FALSE
+  )
+  print_table(stats_overview)
+  print_table(stats_result$assumptions$normality_by_group, caption = "Within-group normality diagnostics")
+  cat("\n", safe_value(stats_result$inference_note, ""), "\n")
+
+  if (!is.null(stats_result$main_result_print)) {
+    cat("\n**Main result:** ", stats_result$main_result_print, "\n", sep = "")
+  }
+
+  if (is_nonempty_df(stats_result$main_result)) {
+    cat("\n## Main test table\n\n")
+    print_table(stats_result$main_result)
+  }
+
+  cat("\n## Effect sizes\n\n")
+  if (is_nonempty_df(stats_result$effect_size)) {
+    print_table(stats_result$effect_size)
+  } else cat("Effect-size estimate not available for this analysis.\n")
+
+  if (is_nonempty_df(stats_result$post_hoc_result)) {
+    cat(if (stats_result$test_name %in% c("t.test", "wilcox.test")) "\n## Two-group comparison (unadjusted p-value)\n\n" else "\n## Post-hoc comparisons\n\n")
+    cat("Method: ", safe_value(stats_result$post_hoc_method), "\n\n", sep = "")
+    print_table(stats_result$post_hoc_result)
+  } else if (is.character(stats_result$post_hoc_result)) {
+    cat("\n", stats_result$post_hoc_result, "\n", sep = "")
+  }
+}
+```
+
+```{r statistical-plot, fig.cap="Statistical group comparison"}
+if (!is.null(params$stat_plot_object)) {
+  print(params$stat_plot_object)
+}
+```
+
+# QC history and precision
+
+```{r precision-summary}
+precision <- params$precision_results
+if (is.null(precision)) {
+  cat("No longitudinal QC precision analysis was available.\n")
+} else {
+  precision_table <- data.frame(
+    Item = c(
+      "Metric", "QC records", "Measurement days", "Overall mean", "Overall SD",
+      "Mean of daily means", "Between-day SD", "Inter-day CV (%)", "Inter-day limit (%)"
+    ),
+    Value = c(
+      safe_value(precision$metric_selected),
+      safe_value(precision$n_total_points),
+      safe_value(precision$n_days),
+      safe_value(precision$overall_mean),
+      safe_value(precision$overall_sd),
+      safe_value(precision$mean_of_daily_means),
+      safe_value(precision$sd_between_days),
+      safe_value(precision$cv_inter),
+      safe_value(precision$inter_day_limit)
+    ),
+    stringsAsFactors = FALSE
+  )
+  print_table(precision_table)
+
+  if (is_nonempty_df(precision$daily_stats)) {
+    cat("\n## Daily precision summary\n\n")
+    print_table(precision$daily_stats)
+  }
+}
+```
+
+# Particle-size distributions
+
+```{r distribution-summary}
+distribution_data <- params$distribution_data_for_report
+if (is_nonempty_df(distribution_data)) {
+  sample_column <- intersect(c("series_key", "sample_key", "SampleName_dist", "sample_name_dist"), names(distribution_data))[1]
+  curve_count <- if (!is.na(sample_column)) length(unique(distribution_data[[sample_column]])) else NA_integer_
+  distribution_summary <- data.frame(
+    Distribution_records = nrow(distribution_data),
+    Curves = curve_count,
+    stringsAsFactors = FALSE
+  )
+  print_table(distribution_summary)
+} else {
+  cat("No particle-size distribution data were available.\n")
+}
+```
+
+```{r distribution-plot, fig.cap="Particle-size distribution", fig.height=params$distribution_plot_height}
+if (!is.null(params$dist_plot_object_for_report)) {
+  print(params$dist_plot_object_for_report)
+}
+```
+
+# Notes
+
+This report was generated by **shinyNTApro**. Statistical output should be interpreted together with the study design, sample independence, assay quality-control procedures and any pre-specified analysis plan.
