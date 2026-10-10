@@ -1,0 +1,7 @@
+NTA Experiment Summary File,,,,,,,,,
+Software Version,SYNTHETIC SOFTWARE TEST - not an instrument export,,,,,,,,
+Experiment Name,SYNTHETIC missing_3x3,,,,,,,,
+[AutoSampler Results],,,,,,,,,
+Well ID,A1,A2,A3,A4,A5,A6,A7,A8,A9
+Sample Name,SYNTHETIC_A_01,SYNTHETIC_A_02,SYNTHETIC_A_03,SYNTHETIC_B_01,SYNTHETIC_B_02,SYNTHETIC_B_03,SYNTHETIC_C_01,SYNTHETIC_C_02,SYNTHETIC_C_03
+Mean Average,,110,111,119,120,121,129,130,131

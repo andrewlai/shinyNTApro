@@ -1,0 +1,10 @@
+source_file,sample_key,sample_name,well_id,Group
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_A_01 | A1,SYNTHETIC_A_01,A1,A
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_A_02 | A2,SYNTHETIC_A_02,A2,A
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_A_03 | A3,SYNTHETIC_A_03,A3,A
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_B_01 | A4,SYNTHETIC_B_01,A4,B
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_B_02 | A5,SYNTHETIC_B_02,A5,B
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_B_03 | A6,SYNTHETIC_B_03,A6,B
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_C_01 | A7,SYNTHETIC_C_01,A7,C
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_C_02 | A8,SYNTHETIC_C_02,A8,C
+small_3x3_summary.csv,small_3x3_summary.csv | SYNTHETIC_C_03 | A9,SYNTHETIC_C_03,A9,C

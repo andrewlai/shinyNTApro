@@ -1,0 +1,13 @@
+source_file,sample_key,sample_name,well_id,Group
+example_nta_summary.csv,example_nta_summary.csv | MeT-5A_1 2026-09-15 13-20-43 | B01,MeT-5A_1 2026-09-15 13-20-43,B01,MeT-5A
+example_nta_summary.csv,example_nta_summary.csv | Caov-3_1 2026-09-15 13-28-00 | B02,Caov-3_1 2026-09-15 13-28-00,B02,Caov-3
+example_nta_summary.csv,example_nta_summary.csv | HEYA8_1 | B03,HEYA8_1,B03,HEYA8
+example_nta_summary.csv,example_nta_summary.csv | OV-90_1 2026-09-15 13-42-32 | B04,OV-90_1 2026-09-15 13-42-32,B04,OV-90
+example_nta_summary.csv,example_nta_summary.csv | MeT-5A_2 2026-09-15 13-50-13 | B05,MeT-5A_2 2026-09-15 13-50-13,B05,MeT-5A
+example_nta_summary.csv,example_nta_summary.csv | Caov-3_2 2026-09-15 13-57-36 | B06,Caov-3_2 2026-09-15 13-57-36,B06,Caov-3
+example_nta_summary.csv,example_nta_summary.csv | HEYA8_2 | B07,HEYA8_2,B07,HEYA8
+example_nta_summary.csv,example_nta_summary.csv | OV-90_2 2026-09-15 14-12-20 | B08,OV-90_2 2026-09-15 14-12-20,B08,OV-90
+example_nta_summary.csv,example_nta_summary.csv | MeT-5A_3 2026-09-15 14-19-41 | B09,MeT-5A_3 2026-09-15 14-19-41,B09,MeT-5A
+example_nta_summary.csv,example_nta_summary.csv | Caov-3_3 2026-09-15 14-27-01 | B10,Caov-3_3 2026-09-15 14-27-01,B10,Caov-3
+example_nta_summary.csv,example_nta_summary.csv | HEYA8_3 | B11,HEYA8_3,B11,HEYA8
+example_nta_summary.csv,example_nta_summary.csv | OV-90_3 2026-09-15 14-41-38 | B12,OV-90_3 2026-09-15 14-41-38,B12,OV-90
