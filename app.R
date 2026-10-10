@@ -1081,6 +1081,7 @@ ui <- fluidPage(
               h4("Group comparison plot"),
               div(class = "card-actions", downloadButton("downloadStatsPlot", "Download PNG", class = "btn-default btn-sm"))
             ),
+            checkboxInput("statsShowNS", "Show non-significant comparisons (NS)", value = FALSE),
             plotOutput("statsPlot", height = 560)
           ),
           div(
@@ -1481,6 +1482,7 @@ server <- function(input, output, session) {
     removeModal()
     updateSelectInput(session, "statsDesign", selected = "independent")
     updateSelectInput(session, "statsTestType", selected = "Auto")
+    updateCheckboxInput(session, "statsShowNS", value = FALSE)
     shinyjs::reset("sidebar_inputs")
     rv$qc_saved_signature <- NULL
     rv$qc_saved_path <- NULL
@@ -2767,6 +2769,11 @@ server <- function(input, output, session) {
     }
     if (inherits(pvals, "data.frame") && nrow(pvals) && all(c("group1", "group2", "p.adj") %in% names(pvals))) {
       pvals <- pvals %>% dplyr::filter(!is.na(group1), !is.na(group2), !is.na(p.adj))
+      # Filter before stacking brackets so hidden comparisons leave no empty space.
+      # This only changes the plot; full statistical results retain every comparison.
+      if (!isTRUE(input$statsShowNS)) {
+        pvals <- pvals %>% dplyr::filter(p.adj <= 0.05)
+      }
       if (nrow(pvals)) {
         max_y <- max(data_analysis[[metric]], na.rm = TRUE)
         min_y <- min(data_analysis[[metric]], na.rm = TRUE)
@@ -2781,6 +2788,8 @@ server <- function(input, output, session) {
           bracket.size = 0.5, size = 4, vjust = 0.5, hide.ns = FALSE
         ) +
           coord_cartesian(ylim = c(min_y - 0.05 * range_y, max(pvals$y.position) + 0.1 * range_y), clip = "off")
+      } else {
+        p <- p + scale_y_continuous(expand = expansion(mult = c(0.05, 0.08)))
       }
     } else {
       p <- p + scale_y_continuous(expand = expansion(mult = c(0.05, 0.08)))
